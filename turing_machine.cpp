@@ -277,3 +277,56 @@ vector<string> TuringMachine::parse_input(std::string input) const {
     }
     return res;
 }
+
+
+int get_max_depth_in_string(string s) {
+    int depth = 0;
+    int max_depth = 0;
+    for (auto c: s) {
+        if (c == '(') {
+            depth++;
+        }
+        if (c == ')') {
+            depth--;
+        }
+        max_depth = max(max_depth, depth);
+    }
+    return max_depth;
+}
+
+int get_max_depth(vector<string> input_alphabet) {
+    int max_depth = 0;
+    for (auto identifier: input_alphabet) {
+        max_depth = max(max_depth, get_max_depth_in_string(identifier));
+    }
+    return max_depth;
+}
+
+string map_identifier(string identifier, int depth) {
+    string result = "";
+    for (int i = 0; i < depth; i++) {
+        result += '(';
+    }
+    result += identifier;
+    for (int i = 0; i < depth; i++) {
+        result += ')';
+    }
+    return result;
+}
+
+const string SEPARATOR = "separator";
+const string TAPE_END = "tape-end";
+
+map<string, string> map_letters_from_input_alphabet(vector<string> input_alphabet) {
+    int max_depth = get_max_depth(input_alphabet) + 1;
+
+    map<string, string> m;
+    for (auto identifier: input_alphabet) {
+        m[identifier] = map_identifier(identifier, max_depth);
+    }
+    m[SEPARATOR] = map_identifier(SEPARATOR, max_depth);
+    m[TAPE_END] = map_identifier(TAPE_END, max_depth);
+
+    return m;
+}
+
