@@ -496,6 +496,9 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
     transitions_t transitions;
     auto set_of_states = tm.set_of_states();
     for (const auto &state: set_of_states) {
+        if (state == ACCEPTING_STATE || state == REJECTING_STATE) {
+            continue;
+        }
         translate_state_transitions(transitions, state, tm, mapping, SEPARATOR, TAPE_END);
     }
     return transitions;
