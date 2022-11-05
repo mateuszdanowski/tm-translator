@@ -1,0 +1,68 @@
+ (start) ? (-create_1st_tape-) ?^ >
+ (-create_1st_tape-) ? (-create_1st_tape-) ? >
+ (-create_1st_tape-) _ (-create_2nd_tape-) (separator) >
+ (-create_2nd_tape-) _ (-put_tape_end-) _^ >
+ (-put_tape_end-) _ (-go_to_separator-) (tape-end) <
+ (-go_to_separator-) _^ (-go_to_separator-) _^ <
+ (-go_to_separator-) (separator) (start_search_left) (separator) <
+
+
+
+ in ? there is also (separator)
+
+ (start_search_left) ? (start_search_left) ? <
+
+ (start_search_left) x^ (start_search_right_(x)) x^ >
+ (start_search_right_(x)) ? (start_search_right_(x)) ? >
+ (start_search_right_(x)) y^ (start_go_head_left_(x)_(y)) y^ <
+
+
+ (start_go_head_left_(x)_(y)) ? (start_go_head_left_(x)_(y)) ? <
+
+ for headL = <
+ (start_go_head_left_(x)_(y)) x^ (start_put_left_(x)_(y)) X <
+ (start_put_left_(x)_(y)) ? (start_go_head_right_(x)_(y)) ?^ >
+
+ for headL = >
+ (start_go_head_left_(x)_(y)) x^ (start_put_left_(x)_(y)) X >
+ (start_put_left_(x)_(y)) ? (start_go_head_right_(x)_(y)) ?^ >
+
+ for headL = -
+ (start_go_head_left_(x)_(y)) x^ (start_go_head_right_(x)_(y)) X >
+
+
+
+ (start_go_head_right_(x)_(y)) ? (start_go_head_right_(x)_(y)) ? >
+
+ for headR = <
+ (start_go_head_right_(x)_(y)) y^ (start_put_right_(x)_(y)) Y <
+ (start_put_right_(x)_(y)) ? (NEXT_search_left) ?^ <
+
+ for headR = >
+ (start_go_head_right_(x)_(y)) y^ (start_put_right_(x)_(y)) Y >
+ (start_put_right_(x)_(y)) ? (NEXT_search_left) ?^ <
+
+ for headR = -
+ (start_go_head_right_(x)_(y)) y^ (NEXT_search_left) Y <
+
+
+
+
+
+
+ NEXT is a state that you go from start_x_y
+ if NEXT == accept or reject, then (NEXT_search_left) = (accept) or (reject)
+
+
+
+ special cases
+ 1) napotkanie (separator) chcąc pisać
+ 2) napotkanie (tape-end) chcąc pisać
+
+ move_to_check_tape_end letterB^ check_tape_end letterB^ >
+ check_tape_end (tape-end) put_tape_end BLANK >
+
+
+
+ put_tape_end BLANK go_two_left (tape-end) <
+ go_two_left BLANK go_left BLANK

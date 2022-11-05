@@ -55,4 +55,6 @@ static inline std::ostream &operator<<(std::ostream &output, const TuringMachine
 
 TuringMachine read_tm_from_file(FILE *input);
 
+TuringMachine translate_tm(const TuringMachine &tm);
+
 #endif
