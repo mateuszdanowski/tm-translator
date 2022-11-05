@@ -312,7 +312,6 @@ transitions_t create_init_transitions(const TuringMachine &tm, const Identifiers
     // at the beginning there could also be a blank with head
     transitions[make_pair(INIT_GO_TO_BEGINNING_STATE, vector<string>{mapping.at(BLANK)})] = make_tuple(START_SEARCH_FIRST_HEAD_STATE, vector<string>{mapping.at(BLANK)}, "-");
 
-
     // when the blank is found, put there a separator
     transitions[make_pair(INIT_FIRST_TAPE_STATE, vector<string>{BLANK})] = make_tuple(INIT_SECOND_TAPE_STATE, vector<string>{SEPARATOR}, ">");
 
