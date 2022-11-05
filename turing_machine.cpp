@@ -341,16 +341,14 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
 
         // search 1st head (go left)
         transitions[make_pair(SEARCH_1ST_HEAD_STATE, vector<string>{SEPARATOR})] = make_tuple(SEARCH_1ST_HEAD_STATE, vector<string>{SEPARATOR}, "<");
-        transitions[make_pair(SEARCH_1ST_HEAD_STATE, vector<string>{BLANK})] = make_tuple(SEARCH_1ST_HEAD_STATE, vector<string>{BLANK}, "<");
-        for (const auto &letterA: tm.input_alphabet) {
+        for (const auto &letterA: tm.working_alphabet()) {
             transitions[make_pair(SEARCH_1ST_HEAD_STATE, vector<string>{letterA})] = make_tuple(SEARCH_1ST_HEAD_STATE, vector<string>{letterA}, "<");
 
             // search 2nd head (go right)
             const string SEARCH_2ND_HEAD_STATE = "(" + state + "-(" + letterA + ")-(search_2nd_head))";
             transitions[make_pair(SEARCH_1ST_HEAD_STATE, vector<string>{mapping.at(letterA)})] = make_tuple(SEARCH_2ND_HEAD_STATE, vector<string>{mapping.at(letterA)}, ">");
             transitions[make_pair(SEARCH_2ND_HEAD_STATE, vector<string>{SEPARATOR})] = make_tuple(SEARCH_2ND_HEAD_STATE, vector<string>{SEPARATOR}, ">");
-            transitions[make_pair(SEARCH_2ND_HEAD_STATE, vector<string>{BLANK})] = make_tuple(SEARCH_1ST_HEAD_STATE, vector<string>{BLANK}, ">");
-            for (const auto &letterB: tm.input_alphabet) {
+            for (const auto &letterB: tm.working_alphabet()) {
                 transitions[make_pair(SEARCH_2ND_HEAD_STATE, vector<string>{letterB})] = make_tuple(SEARCH_2ND_HEAD_STATE, vector<string>{letterB}, ">");
 
                 // go 1st head (go left)
@@ -361,7 +359,7 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
 
                 transitions[make_pair(GO_1ST_HEAD_STATE, vector<string>{SEPARATOR})] = make_tuple(GO_1ST_HEAD_STATE, vector<string>{SEPARATOR}, "<");
                 transitions[make_pair(GO_2ND_HEAD_STATE, vector<string>{SEPARATOR})] = make_tuple(GO_2ND_HEAD_STATE, vector<string>{SEPARATOR}, ">");
-                for (const auto &letter: tm.input_alphabet) {
+                for (const auto &letter: tm.working_alphabet()) {
                     if (tm.transitions.find(make_pair(state, vector<string>{letterA, letterB})) == tm.transitions.end()) {
                         continue;
                     }
@@ -389,29 +387,27 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
                     const string PUT_1ST_HEAD_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(put_1st_head))";
                     if (tape_1st_head_move == '<') {
                         transitions[make_pair(GO_1ST_HEAD_STATE, vector<string>{mapping.at(letterA)})] = make_tuple(PUT_1ST_HEAD_STATE, vector<string>{letterA}, "<");
-                        for (const auto &any_letter: tm.input_alphabet) {
+                        for (const auto &any_letter: tm.working_alphabet()) {
                             transitions[make_pair(PUT_1ST_HEAD_STATE, vector<string>{any_letter})] = make_tuple(GO_2ND_HEAD_STATE, vector<string>{mapping.at(tape_1st_next_letter)}, ">");
                         }
-                        transitions[make_pair(PUT_1ST_HEAD_STATE, vector<string>{BLANK})] = make_tuple(GO_2ND_HEAD_STATE, vector<string>{mapping.at(tape_1st_next_letter)}, ">");
                     }
                     if (tape_1st_head_move == '>') {
                         const string PUT_1ST_HEAD_WITH_CHECK_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(put_1st_head_with_check))";
 
                         transitions[make_pair(GO_1ST_HEAD_STATE, vector<string>{mapping.at(letterA)})] = make_tuple(PUT_1ST_HEAD_WITH_CHECK_STATE, vector<string>{letterA}, ">");
 
-                        for (const auto &any_letter: tm.input_alphabet) {
+                        for (const auto &any_letter: tm.working_alphabet()) {
                             transitions[make_pair(PUT_1ST_HEAD_WITH_CHECK_STATE, vector<string>{any_letter})] = make_tuple(GO_2ND_HEAD_STATE, vector<string>{mapping.at(tape_1st_next_letter)}, ">");
                         }
-                        transitions[make_pair(PUT_1ST_HEAD_WITH_CHECK_STATE, vector<string>{BLANK})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_1st_next_letter)}, ">");
 
                         // check signalizing that we must shift everything
                         const string SHIFT_ALL_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(shift_all))";
                         transitions[make_pair(PUT_1ST_HEAD_WITH_CHECK_STATE, vector<string>{SEPARATOR})] = make_tuple(SHIFT_ALL_STATE, vector<string>{SEPARATOR}, ">");
 
                         // go until we find end-tape
-                        transitions[make_pair(SHIFT_ALL_STATE, vector<string>{BLANK})] = make_tuple(SHIFT_ALL_STATE, vector<string>{BLANK}, ">");
-                        for (const auto &any_letter_shift: tm.input_alphabet) {
+                        for (const auto &any_letter_shift: tm.working_alphabet()) {
                             transitions[make_pair(SHIFT_ALL_STATE, vector<string>{any_letter_shift})] = make_tuple(SHIFT_ALL_STATE, vector<string>{any_letter_shift}, ">");
+                            transitions[make_pair(SHIFT_ALL_STATE, vector<string>{mapping.at(any_letter_shift)})] = make_tuple(SHIFT_ALL_STATE, vector<string>{mapping.at(any_letter_shift)}, ">");
                         }
 
                         // tape-end found, now we have to shift each cell
@@ -423,7 +419,7 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
 
                         transitions[make_pair(GO_ONE_LEFT_INIT_STATE, vector<string>{BLANK})] = make_tuple(SHIFT_EACH_STATE, vector<string>{BLANK}, "<");
 
-                        for (const auto &any_letter: tm.input_alphabet) {
+                        for (const auto &any_letter: tm.working_alphabet()) {
                             const string SHIFT_PUT_STATE1 = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + any_letter + ")-(shift_put_state1))";
                             const string GO_ONE_LEFT_STATE1 = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + any_letter + ")-(go_one_left_state1))";
                             transitions[make_pair(SHIFT_EACH_STATE, vector<string>{any_letter})] = make_tuple(SHIFT_PUT_STATE1, vector<string>{BLANK}, ">");
@@ -437,12 +433,6 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
                             transitions[make_pair(SHIFT_PUT_STATE2, vector<string>{BLANK})] = make_tuple(GO_ONE_LEFT_STATE2, vector<string>{mapped_letter}, "<");
                             transitions[make_pair(GO_ONE_LEFT_STATE2, vector<string>{BLANK})] = make_tuple(SHIFT_EACH_STATE, vector<string>{BLANK}, "<");
                         }
-                        const string SHIFT_PUT_BLANK_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + BLANK + ")-(shift_put_blank_state))";
-                        const string GO_ONE_LEFT_BLANK_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + BLANK + ")-(go_one_left_blank_state))";
-                        transitions[make_pair(SHIFT_EACH_STATE, vector<string>{BLANK})] = make_tuple(SHIFT_PUT_BLANK_STATE, vector<string>{BLANK}, ">");
-                        transitions[make_pair(SHIFT_PUT_BLANK_STATE, vector<string>{BLANK})] = make_tuple(GO_ONE_LEFT_BLANK_STATE, vector<string>{BLANK}, "<");
-                        transitions[make_pair(GO_ONE_LEFT_BLANK_STATE, vector<string>{BLANK})] = make_tuple(SHIFT_EACH_STATE, vector<string>{BLANK}, "<");
-
                         const string SHIFT_PUT_SEPARATOR_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + SEPARATOR + ")-(shift_put_separator_state))";
                         const string GO_ONE_LEFT_SEPARATOR_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(" + SEPARATOR + ")-(go_one_left_separator_state))";
                         transitions[make_pair(SHIFT_EACH_STATE, vector<string>{SEPARATOR})] = make_tuple(SHIFT_PUT_SEPARATOR_STATE, vector<string>{BLANK}, ">");
@@ -456,10 +446,9 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
                     const string PUT_2ND_HEAD_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(put_2nd_head))";
                     if (tape_2nd_head_move == '<') {
                         transitions[make_pair(GO_2ND_HEAD_STATE, vector<string>{mapping.at(letterB)})] = make_tuple(PUT_2ND_HEAD_STATE, vector<string>{letterB}, "<");
-                        for (const auto &any_letter: tm.input_alphabet) {
+                        for (const auto &any_letter: tm.working_alphabet()) {
                             transitions[make_pair(PUT_2ND_HEAD_STATE, vector<string>{any_letter})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_2nd_next_letter)}, "<");
                         }
-                        transitions[make_pair(PUT_2ND_HEAD_STATE, vector<string>{BLANK})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_2nd_next_letter)}, "<");
                     }
                     if (tape_2nd_head_move == '>') {
                         const string PUT_2ND_HEAD_WITH_CHECK_STATE = "(" + state + "-(" + letterA + ")-(" + letterB + ")-(put_2nd_head_with_check))";
@@ -472,10 +461,9 @@ transitions_t translate_transitions(const TuringMachine &tm, const IdentifiersMa
                         transitions[make_pair(PUT_TAPE_END_AFTER_2ND_HEAD_STATE, vector<string>{BLANK})] = make_tuple(GO_BACK_AFTER_PUTTING_TAPE_END_STATE, vector<string>{TAPE_END}, "<");
                         transitions[make_pair(GO_BACK_AFTER_PUTTING_TAPE_END_STATE, vector<string>{tape_2nd_next_letter})] = make_tuple(NEXT_STATE, vector<string>{tape_2nd_next_letter}, "<");
 
-                        for (const auto &any_letter: tm.input_alphabet) {
+                        for (const auto &any_letter: tm.working_alphabet()) {
                             transitions[make_pair(PUT_2ND_HEAD_WITH_CHECK_STATE, vector<string>{any_letter})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_2nd_next_letter)}, "<");
                         }
-                        transitions[make_pair(PUT_2ND_HEAD_WITH_CHECK_STATE, vector<string>{BLANK})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_2nd_next_letter)}, "<");
                     }
                     if (tape_2nd_head_move == '-') {
                         transitions[make_pair(GO_2ND_HEAD_STATE, vector<string>{mapping.at(letterB)})] = make_tuple(NEXT_STATE, vector<string>{mapping.at(tape_2nd_next_letter)}, "<");
@@ -526,9 +514,9 @@ string wrap_with_parentheses(const string &s, int count) {
     return result;
 }
 
-IdentifiersMapping map_letters_from_input_alphabet(const vector<string> &input_alphabet, int parentheses_to_add) {
+IdentifiersMapping map_letters_from_alphabet(const vector<string> &alphabet, int parentheses_to_add) {
     IdentifiersMapping mapping;
-    for (const auto &identifier: input_alphabet) {
+    for (const auto &identifier: alphabet) {
         mapping[identifier] = wrap_with_parentheses(identifier, parentheses_to_add);
     }
     mapping[BLANK] = wrap_with_parentheses(BLANK, parentheses_to_add);
