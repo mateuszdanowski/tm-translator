@@ -3,13 +3,12 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include <set>
 #include <string>
 #include "turing_machine.h"
 
 using namespace std;
-
-static bool verbose = true;
 
 static void print_usage(string error) {
     cerr << "ERROR: " << error << "\n"
@@ -19,20 +18,19 @@ static void print_usage(string error) {
 
 int main(int argc, char* argv[]) {
     string input_filename;
+    string output_filename;
     int ok = 0;
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
-        if (arg == "--quiet" || arg == "-q")
-            verbose = false;
-        else {
-            if (ok == 0)
-                input_filename = arg;
-            else
-                print_usage("Too many arguments");
-            ++ok;
-        }
+        if (ok == 0)
+            input_filename = arg;
+        else if (ok == 1)
+            output_filename = arg;
+        else
+            print_usage("Too many arguments");
+        ++ok;
     }
-    if (ok != 1)
+    if (ok != 2)
         print_usage("Not enough arguments");
 
     FILE *f = fopen(input_filename.c_str(), "r");
@@ -48,6 +46,14 @@ int main(int argc, char* argv[]) {
 
     TuringMachine one_tape_tm = translate_tm(tm);
 
-    // if (verbose)
-    cout << one_tape_tm;
+    std::ofstream out;
+    out.open(output_filename);
+    if (!out) {
+        cerr << "ERROR: File " << output_filename << " could not be opened\n";
+        return 1;
+    }
+    out << one_tape_tm;
+    out.close();
+
+    return 0;
 }
